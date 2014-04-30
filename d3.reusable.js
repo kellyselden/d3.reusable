@@ -1,5 +1,4 @@
 d3.reusable = function(chart) {
-
 	//retrieved 4-4-14
 	//http://stackoverflow.com/a/9924463/1703845
 	var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -22,21 +21,32 @@ d3.reusable = function(chart) {
 		var options = {};
 
 		var updates = [];
-		function runUpdates(p) {
+		var updateParamsLookup = {};
+		function addUpdate(update) {
+			updateParamsLookup[updates.length] = getParamNames(update);
+			updates.push(update);
+		}
+
+		function runUpdates(p, old) {
 			for (var i in updates) {
-				var update = updates[i];
 				var params = [];
-				var found;
-				var paramNames = getParamNames(update);
-				if (paramNames.length == 0)
-					found = true;
-				for (var j in paramNames) {
-					var name = paramNames[j];
-					params.push(options[name]);
-					if (!p || name === p)
-						found = true;
-				}
-				if (found) update.apply(this, params);
+				var callUpdate = false;
+				var paramNames = updateParamsLookup[i];
+				if (!paramNames.length)
+					callUpdate = true;
+				else
+					for (var j in paramNames) {
+						var name = paramNames[j];
+						params.push(options[name]);
+						if (!p) callUpdate = true;
+						else if (p == 'options') {
+							if (old[name] != options[name])
+								callUpdate = true;
+						}
+						else if (name == p && old != options[name])
+							callUpdate = true;
+					}
+				if (callUpdate) updates[i].apply(this, params);
 			}
 		}
 
@@ -44,10 +54,10 @@ d3.reusable = function(chart) {
 			var update = chart.call(this, reusable, d, i);
 			if (!update) return;
 			if (typeof update == 'function')
-				updates.push(update);
+				addUpdate(update);
 			else if (typeof update == 'object')
 				for (var j in update)
-					updates.push(update[j]);
+					addUpdate(update[j]);
 		}
 
 		var reusable = function(selection) {
@@ -59,8 +69,9 @@ d3.reusable = function(chart) {
 
 		function property(p, _) {
 			if (_ === undefined) return options[p];
+			var oldOption = options[p];
 			options[p] = _;
-			runUpdates(p);
+			runUpdates(p, oldOption);
 			return reusable;
 		}
 
@@ -70,8 +81,9 @@ d3.reusable = function(chart) {
 		reusable.options = function(p1, p2) {
 			if (!arguments.length) return options;
 			if (typeof p1 == 'string') return property(p1, p2);
-			options = merge(options, p1);
-			runUpdates('options');
+			var oldOptions = options;
+			options = merge(oldOptions, p1);
+			runUpdates('options', oldOptions);
 			return reusable;
 		};
 
