@@ -87,6 +87,13 @@ d3.reusable = function(chart) {
 			return reusable;
 		};
 
+		reusable.registerOptionChangeDetectors = function() {
+			for (var i in arguments) {
+				var p = arguments[i];
+				reusable[p] = function(p) { return function(_) { return property(p, _); }; }(p); //closure for scope
+			}
+		};
+
 		return reusable;
 	}
 }

@@ -132,7 +132,19 @@ myChart.options('weight', 30).options('size', 2);
 myChart.options({ weight: 30, size: 2 });
 ```
 
-The options function is one of four built-in accessors that were common enough to warrant, the others are **.width()**, **.height()**, and **.data()**. You can add more if you want, otherwise you can just tack them onto the options object.
+The options function is one of four built-in accessors that were common enough to warrant, the others are **.width()**, **.height()**, and **.data()**. If you want your own option accessor function, you can register them like so:
+
+```js
+me.registerOptionChangeDetectors('something'/*, 'somethingElse', ...*/);
+```
+
+This will allow you to call a function with that name on your chart:
+
+```js
+myChart.something(true);
+```
+
+And it will trigger the option change detection shown below.
 
 ## Public Functions
 
