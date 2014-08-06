@@ -1,0 +1,27 @@
+{
+  "name": "d3.reusable",
+  "main": "d3.reusable.js",
+  "version": "0.1.0",
+  "homepage": "https://github.com/kellyselden/d3.reusable",
+  "authors": [
+    "Kelly Selden <kellyselden@gmail.com>"
+  ],
+  "description": "A helper for making reusable d3 graphs",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "d3"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "^3"
+  }
+}
