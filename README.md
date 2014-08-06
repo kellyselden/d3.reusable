@@ -6,6 +6,8 @@ An extension of the concept from http://bost.ocks.org/mike/chart/
 
 Using parts of http://bost.ocks.org/mike/bar/ for simplicity
 
+Examples located [here](https://github.com/kellyselden/d3.reusable.examples)
+
 Here is a simple example the old way:
 
 ```js
