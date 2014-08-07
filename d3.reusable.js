@@ -28,7 +28,7 @@ d3.reusable = function(chart) {
 		}
 
 		function runUpdates(p, old) {
-			for (var i in updates) {
+			for (var i = 0; i < updates.length; i++) {
 				var params = [];
 				var callUpdate = false;
 				var paramNames = updateParamsLookup[i];
