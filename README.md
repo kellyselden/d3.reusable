@@ -222,3 +222,5 @@ function(options) {
 	//...
 }
 ```
+
+**Note:** Using the option names as parameters breaks with minification.
