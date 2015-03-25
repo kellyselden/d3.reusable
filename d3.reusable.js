@@ -1,16 +1,5 @@
 d3.reusable = function(chart) {
-	//retrieved 4-4-14
-	//http://stackoverflow.com/a/9924463/1703845
-	var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-	function getParamNames(func) {
-	  var fnStr = func.toString().replace(STRIP_COMMENTS, '')
-	  var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(/([^\s,]+)/g)
-	  if(result === null)
-		 result = []
-	  return result
-	}
-
-	function merge(x, y){
+	function merge(x, y) {
 		var z = {};
 		for (var p in x) { z[p] = x[p]; }
 		for (var p in y) { z[p] = y[p]; }
@@ -21,24 +10,37 @@ d3.reusable = function(chart) {
 		var options = {};
 
 		var updates = [];
-		var updateParamsLookup = {};
-		function addUpdate(update) {
-			updateParamsLookup[updates.length] = getParamNames(update);
-			updates.push(update);
+		function addUpdate(paramNames, func) {
+			updates.push({
+				paramNames: paramNames,
+				func: func
+			});
 		}
 
 		function runUpdates(p, old) {
-			for (var i = 0; i < updates.length; i++) {
+			for (var i in updates) {
+				if (!updates.hasOwnProperty(i)) continue;
+
+				// you registered options, but didn't supply a function
+				var func = updates[i].func
+				if (!func) continue;
+
 				var params = [];
 				var callUpdate = false;
-				var paramNames = updateParamsLookup[i];
-				if (!paramNames.length)
+				var paramNames = updates[i].paramNames;
+				// you registered a function without supplying options
+				if (!paramNames.length) {
+					params.push(options);
 					callUpdate = true;
-				else
+				}	else {
 					for (var j in paramNames) {
+						if (!paramNames.hasOwnProperty(j)) continue;
+
 						var name = paramNames[j];
 						params.push(options[name]);
+						// first run of graph, run everything
 						if (!p) callUpdate = true;
+						// you did an options merge, check all options
 						else if (p == 'options') {
 							if (old[name] != options[name])
 								callUpdate = true;
@@ -46,18 +48,13 @@ d3.reusable = function(chart) {
 						else if (name == p && old != options[name])
 							callUpdate = true;
 					}
-				if (callUpdate) updates[i].apply(this, params);
+				}
+				if (callUpdate) func.apply(this, params);
 			}
 		}
 
 		function call(d, i) {
-			var update = chart.call(this, reusable, d, i);
-			if (!update) return;
-			if (typeof update == 'function')
-				addUpdate(update);
-			else if (typeof update == 'object')
-				for (var j in update)
-					addUpdate(update[j]);
+			chart.call(this, reusable, d, i);
 		}
 
 		var reusable = function(selection) {
@@ -88,10 +85,19 @@ d3.reusable = function(chart) {
 		};
 
 		reusable.registerOptionChangeDetectors = function() {
-			for (var i in arguments) {
-				var p = arguments[i];
-				reusable[p] = function(p) { return function(_) { return property(p, _); }; }(p); //closure for scope
+			var paramNames = [];
+			var i, p, func;
+			for (i = 0; i < arguments.length; i++) {
+				p = arguments[i];
+				if (i == arguments.length - 1 && typeof p == 'function') {
+					func = p;
+				} else {
+					paramNames.push(p);
+					// closure for scope
+					reusable[p] = function(p) { return function(_) { return property(p, _); }; }(p);
+				}
 			}
+			addUpdate(paramNames, func);
 		};
 
 		return reusable;

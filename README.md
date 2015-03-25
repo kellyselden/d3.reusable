@@ -180,10 +180,10 @@ var aReusableChart = d3.reusable(function() {
 		.style("width", function(d) { return d * 10 + "px"; })
 		.text(function(d) { return d; });
 
-	return function(width, height) {
+	me.registerOptionChangeDetectors('width', 'height', function(width, height) {
 		chart.attr('width', width)
 			.attr('height', height);
-	};
+	});
 });
 ```
 
@@ -195,32 +195,12 @@ myChart.width(myChart.width() + 1).height(myChart.height() + 1);
 
 The function with the width and height parameters is called. It is also called at the end of chart initialization, so you need not call it manually in your reusable definition.
 
-If you want to capture more options, but not make a mammoth parameter list, you would supply an array of functions:
+You can also supply a function without watching options:
 
 ```js
-return [
-	function(width, height) {
-		//...
-	},
-	function(somethingElse) {
-		//...
-	}
-];
-```
-
-You can also supply these functions:
-
-```js
-//called every time an option is set, regardless if the value changes
-function() {
-	//you can still access the options from the chart reference
-	var options = me.options();
-}
-
-//called every time an option value changes, supplies the whole options object
-function(options) {
+me.registerOptionChangeDetectors(function(options) {
 	//...
-}
+})
 ```
 
-**Note:** Using the option names as parameters breaks with minification.
+The function will be called every time an option value changes, and it receives the entire options object.
